@@ -1,6 +1,7 @@
 package com.example.community_engagement.features.reaction;
 
 import com.example.community_engagement.features.reaction.dto.ReactionRequest;
+import com.example.community_engagement.kafka.ReactionProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class ReactionServiceImpl implements ReactionService {
 
     private final ReactionRepository reactionRepository;
+    private final ReactionProducer reactionProducer;
 
     // Create a reaction for a specific content
     @Override
@@ -43,9 +45,15 @@ public class ReactionServiceImpl implements ReactionService {
         reaction.setIsDeleted(false);
 
         // Save and return the created reaction
-        return reactionRepository.save(reaction);
+        reactionRepository.save(reaction);
+
+        // Send the created reaction event to Kafka
+        reactionProducer.sendReactionToKafka(reaction);
+
+        return reaction;
     }
 
+    // Delete a reaction by ID (soft delete)
     @Override
     public void deleteReaction(String reactionId) {
         // Find the reaction by ID
@@ -57,7 +65,11 @@ public class ReactionServiceImpl implements ReactionService {
 
         // Save the updated reaction with isDeleted set to true
         reactionRepository.save(reaction);
+
+        // Send the deleted reaction event to Kafka
+        reactionProducer.sendReactionToKafka(reaction);
     }
+
 
     @Override
     public Map<String, Long> getReactionsByContentId(String contentId) {

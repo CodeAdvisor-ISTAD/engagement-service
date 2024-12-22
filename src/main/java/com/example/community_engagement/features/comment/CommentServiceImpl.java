@@ -1,6 +1,7 @@
 package com.example.community_engagement.features.comment;
 
 import com.example.community_engagement.features.comment.dto.CreateCommentRequest;
+import com.example.community_engagement.kafka.CommentProducer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
+
     private final CommentRepository commentRepository;
+    private final CommentProducer commentProducer;
 
     @Override
     public Comment createComment(CreateCommentRequest createCommentRequest) {
@@ -26,7 +29,12 @@ public class CommentServiceImpl implements CommentService {
         comment.setReplies(null); // No replies initially
 
         // Save the comment to the database
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        // Send the comment to Kafka
+        commentProducer.sendComment(savedComment);
+
+        return savedComment;
     }
 
     @Override
@@ -44,10 +52,14 @@ public class CommentServiceImpl implements CommentService {
             comment.setContentId(createCommentRequest.contentId());
             comment.setBody(createCommentRequest.body());
             comment.setUpdatedAt(LocalDateTime.now()); // Set the update time
-            // Optional: update other fields as needed (e.g., isReported)
 
             // Save the updated comment to the database
-            return commentRepository.save(comment);
+            Comment updatedComment = commentRepository.save(comment);
+
+            // Send the updated comment to Kafka
+            commentProducer.sendComment(updatedComment);
+
+            return updatedComment;
         } else {
             throw new RuntimeException("Comment not found with id: " + id);
         }
