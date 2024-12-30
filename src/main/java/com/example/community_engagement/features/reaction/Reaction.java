@@ -16,6 +16,9 @@ public class Reaction {
 
     @NotNull(message = "userId cannot be null")
     private String userId;
+
+    @NotNull(message = "type cannot be null")
+    private String type;
     
     @NotNull(message = "contentId cannot be null")
     private String contentId;

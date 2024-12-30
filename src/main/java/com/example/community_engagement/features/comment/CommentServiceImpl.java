@@ -1,7 +1,7 @@
 package com.example.community_engagement.features.comment;
 
-import com.example.community_engagement.features.comment.dto.CreateCommentRequest;
-import com.example.community_engagement.kafka.CommentProducer;
+import com.example.community_engagement.config.producer.CommentCreatedEvent;
+import com.example.community_engagement.features.comment.dto.CommentCreatedRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,27 +14,26 @@ import java.util.Optional;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-    private final CommentProducer commentProducer;
+    private final CommentCreatedEvent commentCreatedEvent;
 
     @Override
-    public Comment createComment(CreateCommentRequest createCommentRequest) {
+    public Comment createComment(CommentCreatedRequest commentCreatedRequest) {
         // Create a new comment object from the request
         Comment comment = new Comment();
-        comment.setUserId(createCommentRequest.userId());
-        comment.setContentId(createCommentRequest.contentId());
-        comment.setBody(createCommentRequest.body());
+        comment.setType("COMMENT");
+        comment.setUserId(commentCreatedRequest.userId());
+        comment.setContentId(commentCreatedRequest.contentId());
+        comment.setBody(commentCreatedRequest.body());
         comment.setCreatedAt(LocalDateTime.now()); // Set the current time for creation
         comment.setIsReported(false); // Optional: default value
         comment.setUpdatedAt(null); // No updates yet
         comment.setReplies(null); // No replies initially
 
-        // Save the comment to the database
-        Comment savedComment = commentRepository.save(comment);
-
-        // Send the comment to Kafka
-        commentProducer.sendComment(savedComment);
-
-        return savedComment;
+        commentRepository.save(comment);
+        CommentCreatedRequest event = new CommentCreatedRequest(comment.getUserId(), comment.getType(), comment.getContentId(), comment.getBody());
+        // Send the event to Kafka
+        commentCreatedEvent.sendCommentCreatedEvent("comment-created-events-topic", event);
+        return comment;
     }
 
     @Override
@@ -43,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment updateComment(String id, CreateCommentRequest createCommentRequest) {
+    public Comment updateComment(String id, CommentCreatedRequest createCommentRequest) {
         Optional<Comment> existingComment = commentRepository.findById(id);
         if (existingComment.isPresent()) {
             // Update the existing comment with new data
@@ -55,9 +54,6 @@ public class CommentServiceImpl implements CommentService {
 
             // Save the updated comment to the database
             Comment updatedComment = commentRepository.save(comment);
-
-            // Send the updated comment to Kafka
-            commentProducer.sendComment(updatedComment);
 
             return updatedComment;
         } else {

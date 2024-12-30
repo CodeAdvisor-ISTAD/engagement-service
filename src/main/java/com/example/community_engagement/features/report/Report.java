@@ -15,8 +15,8 @@ public class Report {
     @Id
     private String id;
 
-    @NotNull(message = "dataType cannot be null")
-    private String dataType;
+    @NotNull(message = "type cannot be null")
+    private String type;
 
     @NotNull(message = "userId cannot be null")
     private String userId;
@@ -27,6 +27,12 @@ public class Report {
     @NotNull(message = "reason cannot be null")
     private String reason;
     private String description;
+
+    @NotNull(message = "content id cannot be null")
+    private String contentId;
+
+    @NotNull(message = "comment id cannot be null")
+    private String commentId;
 
     @NotNull(message = "createdAt cannot be null")
     private LocalDateTime createdAt;

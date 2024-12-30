@@ -1,11 +1,15 @@
 spring:
   application:
-    name: community-engagement
-#  kafka:
-#    producer:
-#      bootstrap-servers: localhost:9093  # Kafka server address
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    name: community-engagement-service
+
+  profiles:
+    active: prod
+  config:
+    import: "configserver:"
+
+  cloud:
+    config:
+      uri: http://167.172.78.79:8888
 
 springdoc:
   api-docs:

@@ -7,5 +7,5 @@ import java.util.List;
 public interface ReportRepository extends MongoRepository<Report, String> {
     // Custom query methods (if needed)
     List<Report> findByUserId(String userId);
-    List<Report> findByDataType(String dataType);
+    List<Report> findByType(String dataType);
 }

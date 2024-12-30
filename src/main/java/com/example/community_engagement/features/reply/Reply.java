@@ -24,6 +24,9 @@ public class Reply {
     @NotNull(message = "reply cannot be null")
     private String body;
 
+    @NotNull
+    private String type;
+
     @NotNull(message = "createdAt cannot be null")
     @PastOrPresent(message = "createdAt must be in the past or present")
     private LocalDateTime createAt;

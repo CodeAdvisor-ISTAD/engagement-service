@@ -2,7 +2,7 @@ package com.example.community_engagement.features.comment.web;
 
 import com.example.community_engagement.features.comment.Comment;
 import com.example.community_engagement.features.comment.CommentService;
-import com.example.community_engagement.features.comment.dto.CreateCommentRequest;
+import com.example.community_engagement.features.comment.dto.CommentCreatedRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +20,8 @@ public class CommentController {
 
     // Create a new comment
     @PostMapping
-    public ResponseEntity<Comment> createComment(@Valid @RequestBody CreateCommentRequest createCommentRequest) {
-        Comment createdComment = commentService.createComment(createCommentRequest);
+    public ResponseEntity<Comment> createComment(@Valid @RequestBody CommentCreatedRequest commentCreatedRequest) {
+        Comment createdComment = commentService.createComment(commentCreatedRequest);
         return ResponseEntity.ok(createdComment);
     }
 
@@ -34,7 +34,7 @@ public class CommentController {
 
     // Update a comment
     @PutMapping("/{id}")
-    public ResponseEntity<Comment> updateComment(@PathVariable String id, @Valid @RequestBody CreateCommentRequest createCommentRequest) {
+    public ResponseEntity<Comment> updateComment(@PathVariable String id, @Valid @RequestBody CommentCreatedRequest createCommentRequest) {
         try {
             Comment updatedComment = commentService.updateComment(id, createCommentRequest);
             return ResponseEntity.ok(updatedComment);

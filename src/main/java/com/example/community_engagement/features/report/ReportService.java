@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface ReportService {
     // Create a new report
-    Report createReport(Report report);
+    Report createReport(Report report, String contentId, String commentId);
 
     // Get all reports
     List<Report> getAllReports();

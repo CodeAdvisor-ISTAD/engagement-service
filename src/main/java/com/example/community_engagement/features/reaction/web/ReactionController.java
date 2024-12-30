@@ -2,7 +2,7 @@ package com.example.community_engagement.features.reaction.web;
 
 import com.example.community_engagement.features.reaction.Reaction;
 import com.example.community_engagement.features.reaction.ReactionService;
-import com.example.community_engagement.features.reaction.dto.ReactionRequest;
+import com.example.community_engagement.features.reaction.dto.ContentReactedRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +20,7 @@ public class ReactionController {
     @PostMapping("/content/{contentId}")
     public ResponseEntity<Reaction> createReaction(
             @PathVariable("contentId") String contentId,
-            @RequestBody ReactionRequest reactionRequest) {
+            @RequestBody ContentReactedRequest reactionRequest) {
 
         // Create the reaction using the service. If invalid, it will throw an exception
         Reaction reaction = reactionService.createReaction(contentId, reactionRequest);
