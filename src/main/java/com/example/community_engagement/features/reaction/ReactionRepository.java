@@ -15,4 +15,7 @@ public interface ReactionRepository extends MongoRepository<Reaction, String> {
     // Find a reaction by userId and contentId (to ensure one user can react only once per content)
     Reaction findByContentIdAndUserId(String contentId, String userId);
 
+    // find if user already reacted to a content
+    Boolean existsByContentIdAndUserId(String contentId, String userId);
+
 }

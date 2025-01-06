@@ -3,6 +3,7 @@ package com.example.community_engagement.features.reaction;
 import com.example.community_engagement.config.producer.ContentReactedEvent;
 import com.example.community_engagement.features.reaction.dto.ContentReactedRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ public class ReactionServiceImpl implements ReactionService {
 
     private final ReactionRepository reactionRepository;
     private final ContentReactedEvent contentReactedEvent;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     // Create a reaction for a specific content
     @Override
@@ -34,6 +36,31 @@ public class ReactionServiceImpl implements ReactionService {
             throw new IllegalArgumentException("Content ID is required");
         }
 
+        if (reactionRepository.existsByContentIdAndUserId(reactionRequest.contentId(), reactionRequest.userId())) {
+            Reaction reaction = reactionRepository.findByContentIdAndUserId(reactionRequest.contentId(), reactionRequest.userId());
+            String oldReaction = reaction.getReactionType();
+            reaction.setType("REACTED");
+            reaction.setContentId(reactionRequest.contentId());
+            reaction.setUserId(reactionRequest.userId());
+            reaction.setReactionType(reactionRequest.reactionType());
+            reaction.setCreatedAt(LocalDateTime.now());
+            reaction.setIsDeleted(false);
+            reactionRepository.save(reaction);
+
+            ContentReactedRequest eventUpdated = new ContentReactedRequest(
+                    reaction.getContentId(),
+                    reaction.getType(),
+                    reaction.getUserId(),
+                    reaction.getReactionType(),
+                    oldReaction
+            );
+            kafkaTemplate.send("content-reacted-events-topic", eventUpdated);
+            System.out.println("Successfully updated reaction on content");
+
+            return reaction;
+        }
+
+
         // Create the new reaction
         Reaction reaction = new Reaction();
         reaction.setType("REACTED");
@@ -47,8 +74,15 @@ public class ReactionServiceImpl implements ReactionService {
         reactionRepository.save(reaction);
 
         // Produce a message to the Kafka topic
-        ContentReactedRequest event = new ContentReactedRequest(reaction.getContentId(), reaction.getType(), reaction.getUserId(), reaction.getReactionType());
-        contentReactedEvent.sendContentReactedEvent("content-reacted-events-topic", event);
+        // Create and save new reaction (unchanged)
+        ContentReactedRequest event = new ContentReactedRequest(
+                reaction.getContentId(),
+                reaction.getType(),
+                reaction.getUserId(),
+                reaction.getReactionType(),
+                null
+        );
+        kafkaTemplate.send("content-reacted-events-topic", event);
         System.out.println("Successfully reacted on content");
 
         return reaction;
@@ -95,6 +129,9 @@ public class ReactionServiceImpl implements ReactionService {
     private boolean isValidReactionType(String reactionType) {
         return reactionType.equalsIgnoreCase("love") ||
                 reactionType.equalsIgnoreCase("like") ||
-                reactionType.equalsIgnoreCase("fire");
+                reactionType.equalsIgnoreCase("fire") ||
+                reactionType.equalsIgnoreCase("dislike") ||
+                reactionType.equalsIgnoreCase("unlove") ||
+                reactionType.equalsIgnoreCase("unfire");
     }
 }
