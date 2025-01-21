@@ -18,6 +18,12 @@ public class Report {
     @NotNull(message = "type cannot be null")
     private String type;
 
+    @NotNull(message = "slug cannot be null")
+    private String slug;
+
+    @NotNull(message = "ownerId cannot be null")
+    private String ownerId;
+
     @NotNull(message = "userId cannot be null")
     private String userId;
 

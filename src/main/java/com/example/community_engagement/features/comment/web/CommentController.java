@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "http://192.168.56.1:3000")
 @RequestMapping("/api/v1/engagement/comments")
 @RequiredArgsConstructor
 public class CommentController {
@@ -20,7 +21,8 @@ public class CommentController {
 
     // Create a new comment
     @PostMapping
-    public ResponseEntity<Comment> createComment(@Valid @RequestBody CommentCreatedRequest commentCreatedRequest) {
+    public ResponseEntity<Comment> createComment(
+            @Valid @RequestBody CommentCreatedRequest commentCreatedRequest) {
         Comment createdComment = commentService.createComment(commentCreatedRequest);
         return ResponseEntity.ok(createdComment);
     }

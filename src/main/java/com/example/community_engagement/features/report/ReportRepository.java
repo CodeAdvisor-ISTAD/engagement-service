@@ -8,4 +8,5 @@ public interface ReportRepository extends MongoRepository<Report, String> {
     // Custom query methods (if needed)
     List<Report> findByUserId(String userId);
     List<Report> findByType(String dataType);
+    List<Report> getReportsByContentId(String contentId);
 }

@@ -24,8 +24,14 @@ public class Comment {
     @NotNull(message = "contentId cannot be null")
     private String contentId;
 
-    @NotNull(message = "commenting cannot be null")
+    @NotNull(message = "body cannot be null")
     private String body;
+
+    @NotNull(message = "ownerId cannot be null")
+    private String ownerId;
+
+    @NotNull(message = "slug cannot be null")
+    private String slug;
 
     @NotNull
     private String type;

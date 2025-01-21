@@ -24,17 +24,32 @@ public class CommentServiceImpl implements CommentService {
         comment.setUserId(commentCreatedRequest.userId());
         comment.setContentId(commentCreatedRequest.contentId());
         comment.setBody(commentCreatedRequest.body());
-        comment.setCreatedAt(LocalDateTime.now()); // Set the current time for creation
-        comment.setIsReported(false); // Optional: default value
-        comment.setUpdatedAt(null); // No updates yet
-        comment.setReplies(null); // No replies initially
+        comment.setOwnerId(commentCreatedRequest.ownerId()); // Set ownerId
+        comment.setSlug(commentCreatedRequest.slug());       // Set slug
+        comment.setCreatedAt(LocalDateTime.now());           // Set the current time for creation
+        comment.setIsReported(false);                       // Optional: default value
+        comment.setUpdatedAt(null);                         // No updates yet
+        comment.setReplies(null);                           // No replies initially
 
+        // Save to repository
         commentRepository.save(comment);
-        CommentCreatedRequest event = new CommentCreatedRequest(comment.getUserId(), comment.getType(), comment.getContentId(), comment.getBody());
+
+        // Create an event with the updated fields
+        CommentCreatedRequest event = new CommentCreatedRequest(
+                comment.getUserId(),
+                comment.getType(),
+                comment.getContentId(),
+                comment.getBody(),
+                comment.getOwnerId(), // Include ownerId
+                comment.getSlug()     // Include slug
+        );
+
         // Send the event to Kafka
         commentCreatedEvent.sendCommentCreatedEvent("comment-created-events-topic", event);
+
         return comment;
     }
+
 
     @Override
     public Optional<Comment> getCommentById(String id) {

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/reactions")
@@ -40,5 +41,17 @@ public class ReactionController {
     @GetMapping("/content/{id}")
     public Map<String, Long> getReactionsByContentId(@PathVariable String id) {
         return reactionService.getReactionsByContentId(id);
+    }
+
+    // Endpoint to get the reaction for a specific contentId and userId
+    @GetMapping("/{contentId}/user/{userId}")
+    public ResponseEntity<?> getUserReaction(@PathVariable String contentId, @PathVariable String userId) {
+        Optional<Reaction> reaction = reactionService.getUserReaction(contentId, userId);
+
+        if (reaction.isPresent()) {
+            return ResponseEntity.ok(reaction.get());
+        } else {
+            return ResponseEntity.status(404).body("No reaction found for the given user and content.");
+        }
     }
 }

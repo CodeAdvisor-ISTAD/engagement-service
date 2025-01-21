@@ -22,13 +22,11 @@ public class ReportController {
     // Create a new report
     @PostMapping
     public ResponseEntity<Report> createReport(
-            @RequestBody Report report,
-            @RequestParam(required = false) String contentId,
-            @RequestParam(required = false) String commentId) {
+            @RequestBody Report report) {
 
         // Call the service method to create the report
         try {
-            Report createdReport = reportService.createReport(report, contentId, commentId);
+            Report createdReport = reportService.createReport(report);
             return new ResponseEntity<>(createdReport, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             // Return a bad request response if the IDs are not valid
@@ -76,5 +74,10 @@ public class ReportController {
     public ResponseEntity<List<Report>> getReportsByUserId(@PathVariable String userId) {
         List<Report> reports = reportService.getReportsByUserId(userId);
         return new ResponseEntity<>(reports, HttpStatus.OK);
+    }
+
+    @GetMapping("/content/{contentId}")
+    public List<Report> getReportsByContentId(@PathVariable String contentId) {
+        return reportService.getReportsByContentId(contentId);
     }
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +32,12 @@ public class ReactionServiceImpl implements ReactionService {
             throw new IllegalArgumentException("Invalid reaction type");
         }
 
-        // Ensure the contentId is valid (this can be extended to check if the content exists)
+        // Ensure the contentId is valid
         if (reactionRequest.contentId().isEmpty()) {
             throw new IllegalArgumentException("Content ID is required");
         }
 
+        // Check if a reaction already exists
         if (reactionRepository.existsByContentIdAndUserId(reactionRequest.contentId(), reactionRequest.userId())) {
             Reaction reaction = reactionRepository.findByContentIdAndUserId(reactionRequest.contentId(), reactionRequest.userId());
             String oldReaction = reaction.getReactionType();
@@ -52,14 +54,15 @@ public class ReactionServiceImpl implements ReactionService {
                     reaction.getType(),
                     reaction.getUserId(),
                     reaction.getReactionType(),
-                    oldReaction
+                    oldReaction,
+                    reactionRequest.ownerId(),
+                    reactionRequest.slug()
             );
             kafkaTemplate.send("content-reacted-events-topic", eventUpdated);
             System.out.println("Successfully updated reaction on content");
 
             return reaction;
         }
-
 
         // Create the new reaction
         Reaction reaction = new Reaction();
@@ -74,13 +77,14 @@ public class ReactionServiceImpl implements ReactionService {
         reactionRepository.save(reaction);
 
         // Produce a message to the Kafka topic
-        // Create and save new reaction (unchanged)
         ContentReactedRequest event = new ContentReactedRequest(
                 reaction.getContentId(),
                 reaction.getType(),
                 reaction.getUserId(),
                 reaction.getReactionType(),
-                null
+                null,
+                reactionRequest.ownerId(),
+                reactionRequest.slug()
         );
         kafkaTemplate.send("content-reacted-events-topic", event);
         System.out.println("Successfully reacted on content");
@@ -90,10 +94,12 @@ public class ReactionServiceImpl implements ReactionService {
 
     // Delete a reaction by ID (soft delete)
     @Override
-    public void deleteReaction(String reactionId) {
+    public void deleteReaction(String contentId) {
         // Find the reaction by ID
-        Reaction reaction = reactionRepository.findById(reactionId)
-                .orElseThrow(() -> new RuntimeException("Reaction not found"));
+        Reaction reaction = reactionRepository.findByContentId(contentId)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Reaction not found for contentId: " + contentId));
 
         // Mark as deleted (soft delete)
         reaction.setIsDeleted(true);
@@ -123,6 +129,12 @@ public class ReactionServiceImpl implements ReactionService {
                 });
 
         return reactionCounts;
+    }
+
+    // Fetch the user's reaction by contentId and userId
+    @Override
+    public Optional<Reaction> getUserReaction(String contentId, String userId) {
+        return reactionRepository.findByContentIdAndUserIdAndIsDeletedFalse(contentId, userId);
     }
 
     // Validate the reaction type (either 'love', 'like', or 'fire')

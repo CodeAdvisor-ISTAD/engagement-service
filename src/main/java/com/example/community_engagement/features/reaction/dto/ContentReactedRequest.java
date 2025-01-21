@@ -7,6 +7,8 @@ public record ContentReactedRequest(
         @NotNull(message = "Type cannot be null") String type,
         @NotNull(message = "User ID cannot be null") String userId,
         @NotNull(message = "Reaction Type cannot be null") String reactionType,
-        String oldReactionType
+        String oldReactionType,
+        @NotNull(message = "Owner ID cannot be null") String ownerId,
+        @NotNull(message = "Slug cannot be null") String slug
 ) {
 }
