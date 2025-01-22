@@ -2,10 +2,10 @@ package com.example.community_engagement.features.report;
 
 import com.example.community_engagement.config.producer.CommentReportedEvent;
 import com.example.community_engagement.config.producer.ContentReportedEvent;
-import com.example.community_engagement.features.comment.Comment;
-import com.example.community_engagement.features.comment.CommentRepository;
 import com.example.community_engagement.features.report.dto.CommentReportedRequest;
 import com.example.community_engagement.features.report.dto.ContentReportedRequest;
+import com.example.community_engagement.features.share.Share;
+import com.example.community_engagement.features.share.ShareRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -82,8 +82,23 @@ public class ReportServiceImpl implements ReportService{
         String slug = report.getSlug();            // Get slug from report
         String ownerId = report.getOwnerId();      // Get ownerId from report
 
-        if (contentId != null) {
-            // Set the dataType to "content" for content-related reports
+        // Validate input for report type
+        if (commentId != null && contentId != null) {
+            // Report is for a comment
+            report.setType("COMMENT");
+
+            // Send comment reported event to Kafka
+            CommentReportedRequest event = new CommentReportedRequest(
+                    contentId,
+                    commentId,
+                    "COMMENT",
+                    report.getUserId(),
+                    slug,   // Use slug from report
+                    ownerId // Use ownerId from report
+            );
+            commentReportedEvent.sendCommentReportedEvent("comment-reported-events-topic", event);
+        } else if (contentId != null) {
+            // Report is for content
             report.setType("CONTENT");
 
             // Send content reported event to Kafka
@@ -91,29 +106,28 @@ public class ReportServiceImpl implements ReportService{
                     contentId,
                     "CONTENT",
                     report.getUserId(),
-                    slug,       // Use slug from report
-                    ownerId     // Use ownerId from report
+                    slug,   // Use slug from report
+                    ownerId // Use ownerId from report
             );
             contentReportedEvent.sendContentReportedEvent("content-reported-events-topic", event);
-        } else if (commentId != null) {
-            // Set the dataType to "comment" for comment-related reports
-            report.setType("COMMENT");
-
-            // Send comment reported event to Kafka
-            CommentReportedRequest event = new CommentReportedRequest(
-                    contentId,  // Use contentId from report
-                    commentId,
-                    "COMMENT",
-                    report.getUserId(),
-                    slug,       // Use slug from report
-                    ownerId     // Use ownerId from report
-            );
-            commentReportedEvent.sendCommentReportedEvent("comment-reported-events-topic", event);
         } else {
-            throw new IllegalArgumentException("Either contentId or commentId must be provided.");
+            // Neither contentId nor commentId provided
+            throw new IllegalArgumentException("When reporting, 'contentId' is required. If reporting a comment, 'commentId' is also required.");
         }
 
-        // Ensure the report has the required fields: userId and reason
+        // Validate required fields for all reports
+        validateRequiredFields(report);
+
+        // Set default fields for the report
+        report.setStatus("pending");
+        report.setIsDeleted(false);
+        report.setCreatedAt(LocalDateTime.now());
+
+        // Save the report
+        return reportRepository.save(report);
+    }
+
+    private void validateRequiredFields(Report report) {
         StringBuilder missingFields = new StringBuilder();
 
         if (report.getUserId() == null || report.getUserId().isEmpty()) {
@@ -127,14 +141,6 @@ public class ReportServiceImpl implements ReportService{
         if (!missingFields.isEmpty()) {
             throw new IllegalArgumentException("Missing required fields: " + missingFields.toString().trim());
         }
-
-        // Set the creation time and other properties
-        report.setStatus("pending");
-        report.setIsDeleted(false);
-        report.setCreatedAt(LocalDateTime.now());
-
-        // Save the report
-        return reportRepository.save(report);
     }
 
     public List<Report> getAllReports() {

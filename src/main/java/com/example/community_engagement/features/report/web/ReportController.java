@@ -1,16 +1,14 @@
 package com.example.community_engagement.features.report.web;
 
 import com.example.community_engagement.features.report.Report;
-import com.example.community_engagement.features.report.ReportRepository;
 import com.example.community_engagement.features.report.ReportService;
-import jakarta.validation.Valid;
+import com.example.community_engagement.features.share.Share;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/reports")

@@ -1,7 +1,8 @@
 package com.example.community_engagement.features.report;
 
+import com.example.community_engagement.features.share.Share;
+
 import java.util.List;
-import java.util.Optional;
 
 public interface ReportService {
     // Create a new report
@@ -20,4 +21,6 @@ public interface ReportService {
 
     // Find reports by userId
     List<Report> getReportsByUserId(String userId);
+
+
 }
