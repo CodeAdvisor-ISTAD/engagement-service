@@ -77,42 +77,54 @@ public class ReportServiceImpl implements ReportService{
 
     @Override
     public Report createReport(Report report) {
-        String contentId = report.getContentId();  // Get contentId from report
-        String commentId = report.getCommentId();  // Get commentId from report
-        String slug = report.getSlug();            // Get slug from report
-        String ownerId = report.getOwnerId();      // Get ownerId from report
+        // Get contentId, commentId, slug, and type from the report object
+        String contentId = report.getContentId();
+        String commentId = report.getCommentId();
+        String slug = report.getSlug();
+        String ownerId = report.getOwnerId();
+        String type = report.getType(); // Now, type comes from the frontend
 
-        // Validate input for report type
-        if (commentId != null && contentId != null) {
-            // Report is for a comment
-            report.setType("COMMENT");
+        // Check if the type is 'comment' or 'content'
+        if (type != null && type.equalsIgnoreCase("comment")) {
+            // If type is 'comment', ensure both contentId and commentId are present
+            if (contentId != null && commentId != null) {
+                // Report is for a comment
+                report.setType("COMMENT");
 
-            // Send comment reported event to Kafka
-            CommentReportedRequest event = new CommentReportedRequest(
-                    contentId,
-                    commentId,
-                    "COMMENT",
-                    report.getUserId(),
-                    slug,   // Use slug from report
-                    ownerId // Use ownerId from report
-            );
-            commentReportedEvent.sendCommentReportedEvent("comment-reported-events-topic", event);
-        } else if (contentId != null) {
-            // Report is for content
-            report.setType("CONTENT");
+                // Send comment reported event to Kafka
+                CommentReportedRequest event = new CommentReportedRequest(
+                        contentId,
+                        commentId,
+                        "COMMENT",
+                        report.getUserId(),
+                        slug,
+                        ownerId
+                );
+                commentReportedEvent.sendCommentReportedEvent("comment-reported-events-topic", event);
+            } else {
+                throw new IllegalArgumentException("For reporting a comment, both 'contentId' and 'commentId' are required.");
+            }
+        } else if (type != null && type.equalsIgnoreCase("content")) {
+            // If type is 'content', ensure contentId is present
+            if (contentId != null) {
+                // Report is for content
+                report.setType("CONTENT");
 
-            // Send content reported event to Kafka
-            ContentReportedRequest event = new ContentReportedRequest(
-                    contentId,
-                    "CONTENT",
-                    report.getUserId(),
-                    slug,   // Use slug from report
-                    ownerId // Use ownerId from report
-            );
-            contentReportedEvent.sendContentReportedEvent("content-reported-events-topic", event);
+                // Send content reported event to Kafka
+                ContentReportedRequest event = new ContentReportedRequest(
+                        contentId,
+                        "CONTENT",
+                        report.getUserId(),
+                        slug,
+                        ownerId
+                );
+                contentReportedEvent.sendContentReportedEvent("content-reported-events-topic", event);
+            } else {
+                throw new IllegalArgumentException("'contentId' is required when reporting content.");
+            }
         } else {
-            // Neither contentId nor commentId provided
-            throw new IllegalArgumentException("When reporting, 'contentId' is required. If reporting a comment, 'commentId' is also required.");
+            // If the type is neither 'comment' nor 'content', throw an error
+            throw new IllegalArgumentException("Invalid report type. Type must be either 'comment' or 'content'.");
         }
 
         // Validate required fields for all reports
@@ -126,6 +138,7 @@ public class ReportServiceImpl implements ReportService{
         // Save the report
         return reportRepository.save(report);
     }
+
 
     private void validateRequiredFields(Report report) {
         StringBuilder missingFields = new StringBuilder();

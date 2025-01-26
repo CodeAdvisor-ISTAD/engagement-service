@@ -9,4 +9,6 @@ import java.util.List;
 public interface CommentRepository extends MongoRepository<Comment, String> {
     // Find all comments for a specific contentId
     List<Comment> findByContentId(String contentId);
+
+    Comment save(Comment comment);
 }

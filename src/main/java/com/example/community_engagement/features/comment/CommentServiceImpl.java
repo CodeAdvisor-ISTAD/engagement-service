@@ -50,7 +50,6 @@ public class CommentServiceImpl implements CommentService {
         return comment;
     }
 
-
     @Override
     public Optional<Comment> getCommentById(String id) {
         return commentRepository.findById(id);
@@ -63,14 +62,11 @@ public class CommentServiceImpl implements CommentService {
             // Update the existing comment with new data
             Comment comment = existingComment.get();
             comment.setUserId(createCommentRequest.userId());
-            comment.setContentId(createCommentRequest.contentId());
             comment.setBody(createCommentRequest.body());
             comment.setUpdatedAt(LocalDateTime.now()); // Set the update time
 
             // Save the updated comment to the database
-            Comment updatedComment = commentRepository.save(comment);
-
-            return updatedComment;
+            return commentRepository.save(comment);
         } else {
             throw new RuntimeException("Comment not found with id: " + id);
         }

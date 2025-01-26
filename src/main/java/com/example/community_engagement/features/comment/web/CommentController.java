@@ -35,7 +35,7 @@ public class CommentController {
     }
 
     // Update a comment
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<Comment> updateComment(@PathVariable String id, @Valid @RequestBody CommentCreatedRequest createCommentRequest) {
         try {
             Comment updatedComment = commentService.updateComment(id, createCommentRequest);
