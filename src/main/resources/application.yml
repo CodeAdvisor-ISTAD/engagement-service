@@ -3,7 +3,7 @@ spring:
     name: community-engagement-service
 
   profiles:
-    active: prod
+    active: dev
   config:
     import: "configserver:"
 

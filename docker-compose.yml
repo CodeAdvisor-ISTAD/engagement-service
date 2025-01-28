@@ -1,0 +1,19 @@
+services:
+  code-advisors-ces-service:
+    container_name: code-advisors-ces-service # Set the container name
+    build:
+      context: . # Use the current directory for building
+    ports:
+      - "1086:8086" # Map the application port
+    environment:
+      SPRING_PROFILES_ACTIVE: prod # Set Spring profile if needed
+    volumes:
+      - code-advisors-ces-logs:/app/logs # Optional: Map logs to a local directory
+
+volumes:
+  code-advisors-ces-logs:
+
+networks:
+  default:
+    external:
+      name: code-advisors-network
