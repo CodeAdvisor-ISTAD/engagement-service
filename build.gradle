@@ -43,7 +43,7 @@ dependencies {
 
 	// config server
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 
 	compileOnly 'org.projectlombok:lombok'
