@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/engagement/comments")
 @RequiredArgsConstructor
 public class CommentController {
